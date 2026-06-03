@@ -63,6 +63,10 @@
 }
 
 /* ── base ────────────────────────────────────── */
+html {
+  font-size: clamp(14px, 1vw, 22px);
+}
+
 html, body {
   height: 100%;
   overflow: hidden;
@@ -178,7 +182,7 @@ body {
 /* ── main: 2-column grid ─────────────────────── */
 .main {
   display: grid;
-  grid-template-columns: 400px 1fr;
+  grid-template-columns: clamp(280px, 26vw, 520px) 1fr;
   height: 100%;
   overflow: hidden;
 }
@@ -697,13 +701,27 @@ body {
   min-width: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  grid-template-rows: 1fr auto auto;
+  grid-template-rows: 0.55fr 1fr auto;
   gap: 12px;
 }
 
 #w-stats    { grid-column: 1; grid-row: 1 / 4; }
 #w-hobbies  { grid-column: 2; grid-row: 1; }
-#w-progress { grid-column: 2; grid-row: 2; }
+#w-progress {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+}
+
+.log-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
 #w-player   { grid-column: 2; grid-row: 3; height: 166px; }
 #w-stack    { grid-column: 3; grid-row: 1 / 4; display: flex; flex-direction: column; }
 
