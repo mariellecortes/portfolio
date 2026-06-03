@@ -274,9 +274,13 @@ html, body {
 }
 @media (max-width: 500px) {
   .impact { grid-template-columns: 1fr; }
-  .page { padding: 32px 16px 60px; }
+  .page { padding: 28px 16px 60px; gap: 36px; }
+  .hero__title { font-size: clamp(2rem, 8vw, 4.5rem); }
   .exp-item__header { flex-wrap: wrap; gap: 6px; }
+  .exp-item__role { font-size: 1rem; }
+  .impact-card__num { font-size: 1.6rem; }
   .topbar { padding: 0 16px; }
+  .topbar__role { display: none; }
 }
 @media (hover: none) {
   * { cursor: auto !important; }

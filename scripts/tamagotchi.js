@@ -21,6 +21,25 @@ document.addEventListener('mousemove', (e) => {
 });
 document.addEventListener('mouseup', () => { dragging = false; tama.style.transition = ''; });
 
+tama.addEventListener('touchstart', (e) => {
+  if (e.target.classList.contains('tama-btn')) return;
+  dragging = true;
+  const r = tama.getBoundingClientRect();
+  const t = e.touches[0];
+  ox = t.clientX - r.left; oy = t.clientY - r.top;
+  tama.style.transition = 'none';
+  e.preventDefault();
+}, { passive: false });
+document.addEventListener('touchmove', (e) => {
+  if (!dragging) return;
+  const t = e.touches[0];
+  tama.style.right = 'auto'; tama.style.bottom = 'auto';
+  tama.style.left = `${t.clientX - ox}px`;
+  tama.style.top  = `${t.clientY - oy}px`;
+  e.preventDefault();
+}, { passive: false });
+document.addEventListener('touchend', () => { dragging = false; tama.style.transition = ''; });
+
 /* ── pet state ─────────────────────────────── */
 const pet = {
   x: 40, y: 36, tick: 0,
