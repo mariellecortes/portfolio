@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coffee RAG · Marielle Côrtes</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles/main.css" />
+  <link rel="stylesheet" href="../styles/coffee.css" />
+</head>
+<body class="coffee-page">
+
+  <div id="cursor" aria-hidden="true">
+    <img src="../assets/cursor-smile.svg" alt="" draggable="false" />
+  </div>
+
+  <div class="deco" style="top:12%;left:8%;font-size:.8rem;animation-delay:.6s">☕</div>
+  <div class="deco" style="bottom:20%;right:5%;font-size:.55rem;animation-delay:2s">✦</div>
+  <div class="deco" style="top:60%;left:4%;font-size:.65rem;animation-delay:1.4s">★</div>
+
+  <header class="topbar">
+    <div class="topbar__identity">
+      <a href="../index.html" class="back-btn">← back</a>
+      <span class="topbar__sep">·</span>
+      <p class="topbar__name">Coffee RAG <span class="topbar__star">☕</span></p>
+      <span class="topbar__sep">·</span>
+      <span class="topbar__role">AI project · The World Atlas of Coffee</span>
+    </div>
+  </header>
+
+  <main class="coffee-main">
+
+    <!-- LEFT: project info -->
+    <aside class="coffee-info">
+      <div class="coffee-info__inner">
+        <div class="identity__roles" style="margin-bottom:12px">
+          <span class="badge badge--pink">✦ RAG</span>
+          <span class="badge badge--blue">vector search</span>
+          <span class="badge badge--blue">LLM</span>
+          <span class="badge badge--outline">open source</span>
+        </div>
+
+        <h1 class="coffee-title">ask anything<br>about coffee<span class="identity__cursor">_</span></h1>
+
+        <p class="coffee-desc">
+          A RAG (Retrieval-Augmented Generation) system built on top of
+          <em>The World Atlas of Coffee</em> by James Hoffmann. Ask anything —
+          from origin regions and processing methods to flavor profiles and brewing techniques.
+        </p>
+
+        <div class="coffee-stack">
+          <p class="wlabel">✶ how it works</p>
+          <div class="coffee-steps">
+            <div class="coffee-step">
+              <span class="coffee-step__n blue">01</span>
+              <span class="coffee-step__t">your question is embedded into a vector</span>
+            </div>
+            <div class="coffee-step">
+              <span class="coffee-step__n pink">02</span>
+              <span class="coffee-step__t">FAISS finds the most relevant book excerpts</span>
+            </div>
+            <div class="coffee-step">
+              <span class="coffee-step__n blue">03</span>
+              <span class="coffee-step__t">Llama 3.3 70B generates a grounded answer</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="coffee-tech">
+          <p class="wlabel">◎ built with</p>
+          <div class="stack-tags">
+            <span class="stag stag--pink">Python</span>
+            <span class="stag stag--pink">FastAPI</span>
+            <span class="stag stag--blue">FAISS</span>
+            <span class="stag stag--blue">sentence-transformers</span>
+            <span class="stag stag--blue">Llama 3.3 70B</span>
+            <span class="stag stag--pink">Groq API</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT: chat -->
+    <section class="coffee-chat">
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-bubble chat-bubble--bot">
+          <p>Hey! I'm a coffee expert trained on <em>The World Atlas of Coffee</em>. Ask me anything — origins, processing, brewing, flavor profiles... ☕</p>
+        </div>
+      </div>
+
+      <div class="chat-suggestions" id="chatSuggestions">
+        <button class="suggestion" data-q="What makes Ethiopian coffee unique?">What makes Ethiopian coffee unique?</button>
+        <button class="suggestion" data-q="What is the natural processing method?">What is the natural processing method?</button>
+        <button class="suggestion" data-q="What is terroir in coffee?">What is terroir in coffee?</button>
+      </div>
+
+      <p class="chat-notice">⚠ Your free instance will spin down with inactivity, which can delay requests by 50 seconds or more.</p>
+
+      <form class="chat-form" id="chatForm">
+        <input
+          type="text"
+          class="chat-input"
+          id="chatInput"
+          placeholder="ask about coffee..."
+          autocomplete="off"
+        />
+        <button type="submit" class="chat-send" id="chatSend">↗</button>
+      </form>
+    </section>
+
+  </main>
+
+  <script src="../scripts/cursor.js"></script>
+  <script src="../scripts/coffee.js"></script>
+</body>
+</html>

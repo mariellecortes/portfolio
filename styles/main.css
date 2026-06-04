@@ -551,6 +551,15 @@ body {
 
 .exp-btn:hover .exp-btn__arrow { transform: translate(3px, -3px); }
 
+.exp-btn--coffee {
+  background: linear-gradient(135deg, rgba(255,213,79,.1), var(--pink-dim));
+  border-color: rgba(255,213,79,.25);
+}
+.exp-btn--coffee:hover {
+  box-shadow: 0 0 20px rgba(255,213,79,.2), 0 0 40px var(--pink-glow);
+  border-color: rgba(255,213,79,.5);
+}
+
 /* ── action buttons (hire me + send message) ── */
 .action-btns {
   display: flex;
