@@ -1,4 +1,4 @@
-const API_URL = "https://coffee-rag-28vj.onrender.com/ask";
+const API_URL = "https://web-production-d503e.up.railway.app/ask";
 
 const form        = document.getElementById("chatForm");
 const input       = document.getElementById("chatInput");
