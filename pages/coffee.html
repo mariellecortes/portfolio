@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coffee RAG — Marielle Côrtes</title>
+  <meta name="description" content="A RAG system built on The World Atlas of Coffee — ask anything about coffee." />
+  <meta name="theme-color" content="#16161E" />
+  <link rel="icon" href="../assets/favicon.svg?v=2" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:ital,opsz,wght@0,14..32,300..600;1,14..32,300..600&family=Victor+Mono:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles/main.css" />
+  <link rel="stylesheet" href="../styles/coffee.css" />
+</head>
+<body>
+
+  <!-- ── NAV ── -->
+  <nav class="nav nav--solid" id="nav">
+    <a href="../index.html" class="nav__back">← back</a>
+    <div class="nav__links">
+      <span class="mono-label nav__hide-sm">AI project · The World Atlas of Coffee</span>
+      <a href="experience.html">work</a>
+      <a href="../index.html#contact">contact</a>
+    </div>
+  </nav>
+
+  <main class="coffee">
+
+    <!-- LEFT: project info -->
+    <aside class="coffee-info">
+      <span class="mono-label">RAG · Vector search · LLM · Open source</span>
+
+      <h1 class="coffee-info__title">
+        Ask anything<br>about <em>coffee</em>.
+      </h1>
+
+      <p class="coffee-info__desc">
+        A RAG (Retrieval-Augmented Generation) system built on top of
+        <em>The World Atlas of Coffee</em> by James Hoffmann. Ask anything —
+        from origin regions and processing methods to flavor profiles and brewing techniques.
+      </p>
+
+      <div class="coffee-info__block">
+        <span class="mono-label">How it works</span>
+        <ol class="coffee-steps">
+          <li class="coffee-step">
+            <span class="coffee-step__n">01</span>
+            <span class="coffee-step__t">your question is embedded into a vector</span>
+          </li>
+          <li class="coffee-step">
+            <span class="coffee-step__n">02</span>
+            <span class="coffee-step__t">FAISS finds the most relevant book excerpts</span>
+          </li>
+          <li class="coffee-step">
+            <span class="coffee-step__n">03</span>
+            <span class="coffee-step__t">Llama 3.3 70B generates a grounded answer</span>
+          </li>
+        </ol>
+      </div>
+
+      <div class="coffee-info__block">
+        <span class="mono-label">Built with</span>
+        <div class="tags">
+          <span class="tag">Python</span>
+          <span class="tag">FastAPI</span>
+          <span class="tag">FAISS</span>
+          <span class="tag">all-MiniLM-L6-v2</span>
+          <span class="tag">Llama 3.3 70B</span>
+          <span class="tag">Groq API</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT: chat -->
+    <section class="coffee-chat" aria-label="Coffee chat">
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-bubble chat-bubble--bot">
+          <p>Hey! I'm a coffee expert trained on <em>The World Atlas of Coffee</em>. Ask me anything — origins, processing, brewing, flavor profiles... ☕</p>
+          <p class="chat-bubble__note">Please ask your questions in English only.</p>
+        </div>
+      </div>
+
+      <div class="chat-suggestions" id="chatSuggestions">
+        <button class="suggestion" data-q="What makes Ethiopian coffee unique?">What makes Ethiopian coffee unique?</button>
+        <button class="suggestion" data-q="What is the natural processing method?">What is the natural processing method?</button>
+        <button class="suggestion" data-q="What is terroir in coffee?">What is terroir in coffee?</button>
+      </div>
+
+      <p class="chat-notice">⚠ free instance spins down with inactivity — first answer can take 50s+</p>
+
+      <form class="chat-form" id="chatForm">
+        <input
+          type="text"
+          class="chat-input"
+          id="chatInput"
+          placeholder="ask about coffee..."
+          autocomplete="off"
+        />
+        <button type="submit" class="chat-send" id="chatSend" aria-label="send">↗</button>
+      </form>
+    </section>
+
+  </main>
+
+  <script src="../scripts/main.js"></script>
+  <script src="../scripts/coffee.js"></script>
+</body>
+</html>
