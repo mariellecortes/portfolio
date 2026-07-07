@@ -118,14 +118,12 @@ a { color: inherit; text-decoration: none; }
   border-color: var(--fg);
 }
 
-/* ── HERO ── */
+/* ── HERO (mobile: natural height right below the nav; desktop: full screen) ── */
 .hero {
-  min-height: 100dvh;
-  min-height: 100svh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: calc(var(--nav-h) + 2rem) var(--pad-x) 3.5rem;
+  justify-content: flex-start;
+  padding: calc(var(--nav-h) + 2.5rem) var(--pad-x) 3rem;
   position: relative;
 }
 
@@ -263,7 +261,7 @@ a { color: inherit; text-decoration: none; }
   gap: 1rem;
   padding-bottom: 1.25rem;
   border-bottom: 1px solid var(--border);
-  margin-bottom: clamp(1.75rem, 7vw, 5.5rem);
+  margin-bottom: 1.5rem;
 }
 
 .section-num {
@@ -838,7 +836,17 @@ a { color: inherit; text-decoration: none; }
 
   .nav__hide-sm { display: inline; }
 
-  .hero { padding-bottom: 5rem; }
+  .section-header {
+    padding-bottom: 1.5rem;
+    margin-bottom: clamp(2.5rem, 7vw, 5.5rem);
+  }
+
+  .hero {
+    min-height: 100dvh;
+    min-height: 100svh;
+    justify-content: flex-end;
+    padding-bottom: 5rem;
+  }
 
   .hero__label {
     flex-direction: row;
