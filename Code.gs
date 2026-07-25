@@ -11,6 +11,7 @@
 
 const SHEET_NAME   = 'eventos';
 const VALID_TOKEN  = 'dl-7x9k2m4p-tz3q8n1v';
+const SPREADSHEET_ID = '1rEu8VXy9etCOqgPi1Rc60xXX8hr1nLZp1T1v9jc1GCI';
 
 const HEADERS = [
   'user_pin',
@@ -65,7 +66,7 @@ function doGet() {
 // ── Helpers ───────────────────────────────────────────────────
 
 function getOrCreateSheet() {
-  const ss  = SpreadsheetApp.getActiveSpreadsheet();
+  const ss  = SpreadsheetApp.openById(SPREADSHEET_ID);
   let sheet = ss.getSheetByName(SHEET_NAME);
 
   if (!sheet) sheet = ss.insertSheet(SHEET_NAME);
