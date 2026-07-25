@@ -1,0 +1,1795 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>daylog ✦</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* ── Tokyo Night palette ── */
+    :root {
+      --bg:      #1a1b26;
+      --bg2:     #1f2335;
+      --bg3:     #24283b;
+      --border:  #292e42;
+      --pink:    #f7768e;
+      --blue:    #7aa2f7;
+      --purple:  #bb9af7;
+      --green:   #9ece6a;
+      --yellow:  #e0af68;
+      --teal:    #73daca;
+      --text:    #c0caf5;
+      --muted:   #565f89;
+      --subtle:  #3b4261;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', system-ui, sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { height: 100%; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100%;
+      max-width: 480px;
+      margin: 0 auto;
+      padding-bottom: calc(24px + env(safe-area-inset-bottom));
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 20px 20px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--purple);
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+    .logo span { color: var(--pink); }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .sync-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      transition: background 0.4s;
+    }
+    .sync-dot.pending { background: var(--yellow); animation: pulse 1.5s infinite; }
+    .sync-dot.error   { background: var(--pink); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.35; }
+    }
+
+    .pending-count {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--yellow);
+      color: var(--bg);
+      font-family: var(--mono);
+      font-size: 8px;
+      font-weight: 700;
+      min-width: 14px;
+      height: 14px;
+      border-radius: 7px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0 2px;
+    }
+    .pending-count.visible { display: flex; }
+
+    .settings-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 20px;
+      padding: 4px;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .settings-btn:active { color: var(--text); }
+
+    /* ── Date + streak ── */
+    .date-bar {
+      padding: 0 20px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .date-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .streak-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--yellow);
+      line-height: 1;
+    }
+
+    /* ── Today summary ── */
+    .today-summary {
+      margin: 0 16px 18px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px 16px;
+      min-height: 64px;
+    }
+
+    .summary-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .summary-empty {
+      font-size: 13px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .summary-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .summary-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 12px;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .summary-chip .chip-time {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    /* ── Section title ── */
+    .section-title {
+      padding: 0 20px 10px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    /* ── Actions grid ── */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 0 16px;
+    }
+
+    .action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      padding: 20px 10px 16px;
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, transform 0.08s;
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      min-height: 96px;
+      position: relative;
+    }
+
+    .action-btn:active {
+      transform: scale(0.95);
+      background: var(--bg3);
+    }
+
+    .action-btn.logged::after {
+      content: '';
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+
+    .action-icon { font-size: 28px; line-height: 1; }
+    .action-label { font-size: 13px; font-weight: 500; }
+    .action-time {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      min-height: 14px;
+    }
+
+    /* button accent borders */
+    .btn-pink   { border-color: rgba(247,118,142,.25); }
+    .btn-blue   { border-color: rgba(122,162,247,.25); }
+    .btn-teal   { border-color: rgba(115,218,202,.25); }
+    .btn-purple { border-color: rgba(187,154,247,.25); }
+    .btn-yellow { border-color: rgba(224,175,104,.25); }
+    .btn-green  { border-color: rgba(158,206,106,.25); }
+
+    .btn-pink:active   { border-color: var(--pink);   }
+    .btn-blue:active   { border-color: var(--blue);   }
+    .btn-teal:active   { border-color: var(--teal);   }
+    .btn-purple:active { border-color: var(--purple); }
+    .btn-yellow:active { border-color: var(--yellow); }
+    .btn-green:active  { border-color: var(--green);  }
+
+    .action-btn.logged.btn-pink   { border-color: rgba(247,118,142,.5); }
+    .action-btn.logged.btn-blue   { border-color: rgba(122,162,247,.5); }
+    .action-btn.logged.btn-teal   { border-color: rgba(115,218,202,.5); }
+    .action-btn.logged.btn-purple { border-color: rgba(187,154,247,.5); }
+    .action-btn.logged.btn-yellow { border-color: rgba(224,175,104,.5); }
+    .action-btn.logged.btn-green  { border-color: rgba(158,206,106,.5); }
+
+    /* ── Day log ── */
+    .log-section {
+      padding: 8px 16px 0;
+    }
+
+    .log-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .log-item:last-child { border-bottom: none; }
+
+    .log-time {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      min-width: 42px;
+      padding-top: 1px;
+    }
+
+    .log-icon { font-size: 16px; flex-shrink: 0; }
+
+    .log-body { flex: 1; }
+    .log-text { font-size: 13px; color: var(--text); }
+    .log-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Overlay + bottom sheet ── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.65);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+    }
+    .overlay.active { display: flex; }
+
+    .sheet {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      border-radius: 24px 24px 0 0;
+      padding: 10px 20px calc(28px + env(safe-area-inset-bottom));
+      width: 100%;
+      max-width: 480px;
+      max-height: 88vh;
+      overflow-y: auto;
+      animation: slideUp .22s cubic-bezier(.22,.68,0,1.2);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: .6; }
+      to   { transform: translateY(0);   opacity: 1; }
+    }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin: 6px auto 18px;
+    }
+
+    .sheet-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    /* ── Form elements ── */
+    .form-group { margin-bottom: 16px; }
+
+    .form-label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .9px;
+      color: var(--muted);
+      margin-bottom: 7px;
+      font-weight: 600;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 13px 14px;
+      color: var(--text);
+      font-size: 16px;
+      font-family: var(--sans);
+      outline: none;
+      transition: border-color .15s;
+      -webkit-appearance: none;
+    }
+    .form-input:focus { border-color: var(--purple); }
+    .form-input.mono  { font-family: var(--mono); }
+    .form-input.time-centered {
+      font-family: var(--mono);
+      font-size: 28px;
+      text-align: center;
+      letter-spacing: 2px;
+      padding: 14px;
+    }
+    textarea.form-input { resize: none; }
+
+    /* ── Sliders ── */
+    .slider-group { margin-bottom: 18px; }
+
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .slider-value {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--purple);
+      min-width: 24px;
+      text-align: right;
+    }
+
+    .emoji-scale {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 2px;
+      margin-bottom: 6px;
+      font-size: 18px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: var(--subtle);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--purple);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(187,154,247,.45);
+      border: 2px solid var(--bg2);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--purple);
+      cursor: pointer;
+      border: 2px solid var(--bg2);
+    }
+
+    /* ── Hint text ── */
+    .hint { font-size: 11px; color: var(--muted); margin-top: 5px; }
+
+    /* ── Save button ── */
+    .save-btn {
+      width: 100%;
+      background: var(--purple);
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      color: var(--bg);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: opacity .12s, transform .08s;
+      -webkit-tap-highlight-color: transparent;
+      letter-spacing: .3px;
+    }
+    .save-btn:active { opacity: .82; transform: scale(.98); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: calc(28px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: var(--green);
+      color: var(--bg);
+      padding: 10px 22px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      z-index: 300;
+      opacity: 0;
+      transition: opacity .18s, transform .18s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Settings screen ── */
+    .settings-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 200;
+      padding: 0;
+      display: none;
+      overflow-y: auto;
+    }
+    .settings-screen.active { display: block; }
+
+    .settings-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 22px;
+      padding: 4px;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .back-btn:active { color: var(--text); }
+
+    .settings-heading {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .settings-body { padding: 20px; }
+
+    .settings-section { margin-bottom: 28px; }
+
+    .settings-section-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .info-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 14px;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .info-card .info-label { color: var(--muted); font-size: 13px; }
+    .info-card .info-value { font-family: var(--mono); font-size: 13px; color: var(--teal); }
+
+    .retry-btn {
+      background: var(--blue);
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      color: var(--bg);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .retry-btn:active { opacity: .8; }
+
+    /* ── PIN screen ── */
+    .pin-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pin-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 340px;
+      padding: 40px 32px 36px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      margin: 16px;
+    }
+
+    /* em mobile ocupa a tela toda sem card */
+    @media (max-width: 520px) {
+      .pin-card {
+        max-width: 100%;
+        margin: 0;
+        border: none;
+        border-radius: 0;
+        background: var(--bg);
+        padding: 48px 24px 36px;
+        min-height: 100dvh;
+        justify-content: center;
+      }
+    }
+
+    .pin-logo {
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--purple);
+      margin-bottom: 6px;
+    }
+    .pin-logo span { color: var(--pink); }
+
+    .pin-desc {
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+      max-width: 260px;
+      margin-bottom: 20px;
+    }
+
+    .pin-subtitle {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+      color: var(--subtle);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .pin-dots {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .pin-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: transparent;
+      transition: background .15s, border-color .15s;
+    }
+    .pin-dot.filled {
+      background: var(--purple);
+      border-color: var(--purple);
+    }
+    .pin-dot.error {
+      background: var(--pink);
+      border-color: var(--pink);
+      animation: shake .3s ease;
+    }
+
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25%      { transform: translateX(-6px); }
+      75%      { transform: translateX(6px); }
+    }
+
+    .pin-pad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    .pin-key {
+      background: var(--bg3);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      height: 58px;
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      transition: background .1s, transform .08s, border-color .1s;
+    }
+    .pin-key:hover  { border-color: var(--subtle); background: var(--bg2); }
+    .pin-key:active { background: var(--subtle); transform: scale(0.93); border-color: var(--purple); }
+    .pin-key.empty  { background: transparent; border-color: transparent; cursor: default; }
+    .pin-key.del    { font-size: 18px; color: var(--muted); }
+
+    .pin-error-msg {
+      margin-top: 18px;
+      font-size: 13px;
+      color: var(--pink);
+      min-height: 18px;
+      text-align: center;
+    }
+
+    .pin-confirm-hint {
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      min-height: 16px;
+    }
+
+    /* ── Misc ── */
+    .mt8 { margin-top: 8px; }
+    .spacer { height: 24px; }
+  </style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div class="pin-screen" id="pinScreen">
+ <div class="pin-card">
+  <div class="pin-logo">day<span>log</span> ✦</div>
+  <p class="pin-desc" id="pinDesc">A minimal daily tracker for logging life as it happens — meals, mood, study, workouts. Your data goes straight to a private Google Sheet.</p>
+  <div class="pin-subtitle" id="pinSubtitle">crie um PIN de 4 dígitos</div>
+
+  <!-- etapa: PIN (dots + pad) -->
+  <div id="pinPadSection" style="width:100%">
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot" id="pd0"></div>
+      <div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div>
+      <div class="pin-dot" id="pd3"></div>
+    </div>
+
+    <div class="pin-pad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <div  class="pin-key empty"></div>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key del" onclick="pinDel()">⌫</button>
+    </div>
+  </div>
+
+  <!-- etapa: email (só na criação) -->
+  <div id="emailSection" style="display:none; width:100%; max-width:280px;">
+    <input class="form-input" type="email" id="pinEmail"
+      placeholder="seu@email.com"
+      style="text-align:center; margin-bottom:12px;"
+      onkeydown="if(event.key==='Enter') submitEmail()">
+    <button class="save-btn" onclick="submitEmail()">entrar ✓</button>
+  </div>
+
+  <div class="pin-error-msg" id="pinError"></div>
+  <div class="pin-confirm-hint" id="pinHint"></div>
+ </div><!-- /pin-card -->
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ========== SETTINGS SCREEN ========== -->
+<div class="settings-screen" id="settingsScreen">
+  <div class="settings-header">
+    <button class="back-btn" onclick="closeSettings()" aria-label="Voltar">←</button>
+    <span class="settings-heading">configurações</span>
+  </div>
+  <div class="settings-body">
+
+    <div class="settings-section">
+      <div class="settings-section-title">URL do Web App (Google Apps Script)</div>
+      <textarea class="form-input mono" id="appsScriptUrl" rows="3"
+        style="font-size:12px;resize:none;"
+        placeholder="https://script.google.com/macros/s/.../exec"></textarea>
+      <p class="hint mt8">Cole aqui a URL gerada ao publicar o Code.gs como Web App.</p>
+      <button class="save-btn mt8" onclick="saveAppsScriptUrl()">salvar URL</button>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">fila de sincronização</div>
+      <div class="info-card">
+        <div>
+          <div class="info-label">eventos pendentes</div>
+          <div class="info-value" id="queueCount">—</div>
+        </div>
+        <button class="retry-btn" onclick="retryQueue()">reenviar agora</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">streak</div>
+      <div class="info-card" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <div>
+          <div class="info-label">sequência atual</div>
+          <div class="info-value" id="streakCurrent">—</div>
+        </div>
+        <div>
+          <div class="info-label">recorde pessoal</div>
+          <div class="info-value" id="streakBest">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">sobre</div>
+      <div class="info-card" style="flex-direction:column;align-items:flex-start;gap:4px;">
+        <div class="info-label">daylog ✦ — tracker pessoal sem fricção</div>
+        <div class="info-label">dados ficam no seu Google Sheets</div>
+        <div class="info-label">nada é enviado a nenhum outro servidor</div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+</div>
+
+<!-- ========== MAIN APP ========== -->
+<div id="mainApp">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">day<span>log</span> ✦</div>
+    <div class="header-right">
+      <div class="sync-wrap" title="status de sincronização">
+        <div class="sync-dot" id="syncDot"></div>
+        <div class="pending-count" id="pendingCount">0</div>
+      </div>
+      <button class="settings-btn" id="settingsBtn" onclick="openSettings()" aria-label="Configurações" style="display:none">⚙</button>
+    </div>
+  </div>
+
+  <!-- Date + streak -->
+  <div class="date-bar">
+    <div class="date-label" id="dateLabel">—</div>
+    <div class="streak-badge">🔥 <span id="streakBadge">0</span> dias</div>
+  </div>
+
+  <!-- Today summary -->
+  <div class="today-summary">
+    <div class="summary-title">hoje</div>
+    <div id="summaryContent">
+      <div class="summary-empty">nenhum registro ainda — bom dia! ✨</div>
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="section-title">registrar</div>
+  <div class="actions-grid">
+    <button class="action-btn btn-pink"   id="btn-acordar" onclick="openSheet('acordar')">
+      <span class="action-icon">☀️</span>
+      <span class="action-label">Acordei</span>
+      <span class="action-time" id="time-acordar"></span>
+    </button>
+    <button class="action-btn btn-purple" id="btn-check"   onclick="openSheet('check')">
+      <span class="action-icon">✨</span>
+      <span class="action-label">Check da manhã</span>
+      <span class="action-time" id="time-check"></span>
+    </button>
+    <button class="action-btn btn-yellow" id="btn-cafe"    onclick="openSheet('cafe')">
+      <span class="action-icon">☕</span>
+      <span class="action-label">Café</span>
+      <span class="action-time" id="time-cafe"></span>
+    </button>
+    <button class="action-btn btn-teal"   id="btn-almoco"  onclick="openSheet('almoco')">
+      <span class="action-icon">🥗</span>
+      <span class="action-label">Almoço</span>
+      <span class="action-time" id="time-almoco"></span>
+    </button>
+    <button class="action-btn btn-yellow" id="btn-jantar"  onclick="openSheet('jantar')">
+      <span class="action-icon">🍜</span>
+      <span class="action-label">Jantar</span>
+      <span class="action-time" id="time-jantar"></span>
+    </button>
+    <button class="action-btn btn-blue"   id="btn-estudo"  onclick="openSheet('estudo')">
+      <span class="action-icon">📚</span>
+      <span class="action-label">Estudei</span>
+      <span class="action-time" id="time-estudo"></span>
+    </button>
+    <button class="action-btn btn-green"  id="btn-treino"  onclick="openSheet('treino')">
+      <span class="action-icon">🏃</span>
+      <span class="action-label">Treino</span>
+      <span class="action-time" id="time-treino"></span>
+    </button>
+    <button class="action-btn btn-pink"   id="btn-dormir"  onclick="openSheet('dormir')">
+      <span class="action-icon">🌙</span>
+      <span class="action-label">Fui dormir</span>
+      <span class="action-time" id="time-dormir"></span>
+    </button>
+  </div>
+
+  <!-- Day log -->
+  <div class="log-section">
+    <div class="section-title" style="padding:18px 4px 8px;">log do dia</div>
+    <div id="dayLog"></div>
+  </div>
+
+  <div class="spacer"></div>
+</div>
+
+<!-- ========== BOTTOM SHEETS ========== -->
+<div class="overlay" id="overlay" onclick="closeSheet()">
+  <!-- wrapper stops click propagation -->
+  <div style="width:100%;max-width:480px;" onclick="event.stopPropagation()">
+
+    <!-- ACORDEI -->
+    <div class="sheet" id="sheet-acordar" style="display:none">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">☀️ Acordei</div>
+      <div class="form-group">
+        <label class="form-label">horário</label>
+        <input class="form-input time-centered" type="time" id="acordar-time">
+      </div>
+      <button class="save-btn" onclick="saveAcordar()">registrar ✓</button>
+    </div>
+
+    <!-- CHECK DA MANHÃ -->
+    <div class="sheet" id="sheet-check" style="display:none">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">✨ Check da manhã</div>
+      <div class="form-group">
+        <label class="form-label">horário que acordou</label>
+        <input class="form-input time-centered" type="time" id="check-time">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <label class="form-label" style="margin:0">humor</label>
+          <span class="slider-value" id="humor-val">3</span>
+        </div>
+        <div class="emoji-scale">
+          <span title="muito mal">😔</span>
+          <span title="mal">😕</span>
+          <span title="ok">😐</span>
+          <span title="bem">🙂</span>
+          <span title="ótimo">😄</span>
+        </div>
+        <input type="range" min="1" max="5" value="3" id="humor-slider"
+          oninput="document.getElementById('humor-val').textContent=this.value">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <label class="form-label" style="margin:0">disposição física</label>
+          <span class="slider-value" id="fisico-val">3</span>
+        </div>
+        <div class="emoji-scale">
+          <span title="sem energia">🥱</span>
+          <span title="cansada">😴</span>
+          <span title="ok">🙆</span>
+          <span title="disposta">💪</span>
+          <span title="cheia de energia">⚡</span>
+        </div>
+        <input type="range" min="1" max="5" value="3" id="fisico-slider"
+          oninput="document.getElementById('fisico-val').textContent=this.value">
+      </div>
+
+      <button class="save-btn" onclick="saveCheck()">registrar ✓</button>
+    </div>
+
+    <!-- CAFÉ -->
+    <div class="sheet" id="sheet-cafe" style="display:none">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">☕ Café da manhã</div>
+      <div class="form-group">
+        <label class="form-label">horário</label>
+        <input class="form-input time-centered" type="time" id="cafe-time">
+      </div>
+      <div class="form-group">
+        <label class="form-label">o que comeu? (opcional)</label>
+        <textarea class="form-input" id="cafe-detail" rows="2"
+          placeholder="tapioca, fruta, iogurte..."></textarea>
+      </div>
+      <button class="save-btn" onclick="saveRefeicao('cafe')">registrar ✓</button>
+    </div>
+
+    <!-- ALMOÇO -->
+    <div class="sheet" id="sheet-almoco" style="display:none">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">🥗 Almoço</div>
+      <div class="form-group">
+        <label class="form-label">horário</label>
+        <input class="form-input time-centered" type="time" id="almoco-time">
+      </div>
+      <div class="form-group">
+        <label class="form-label">o que comeu? (opcional)</label>
+        <textarea class="form-input" id="almoco-detail" rows="2"
+          placeholder="arroz, feijão, salada..."></textarea>
+      </div>
+      <button class="save-btn" onclick="saveRefeicao('almoco')">registrar ✓</button>
+    </div>
+
+    <!-- JANTAR -->
+    <div class="sheet" id="sheet-jantar" style="display:none">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">🍜 Jantar</div>
+      <div class="form-group">
+        <label class="form-label">horário</label>
+        <input class="form-input time-centered" type="time" id="jantar-time">
+      </div>
+      <div class="form-group">
+        <label class="form-label">o que comeu? (opcional)</label>
+        <textarea class="form-input" id="jantar-detail" rows="2"
+          placeholder="sopa, macarrão, lanche leve..."></textarea>
+      </div>
+      <button class="save-btn" onclick="saveRefeicao('jantar')">registrar ✓</button>
+    </div>
+
+    <!-- ESTUDEI -->
+    <div class="sheet" id="sheet-estudo" style="display:none">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">📚 Estudei</div>
+      <div class="form-group">
+        <label class="form-label">horário</label>
+        <input class="form-input time-centered" type="time" id="estudo-time">
+      </div>
+      <div class="form-group">
+        <label class="form-label">tópico</label>
+        <input class="form-input" type="text" id="estudo-detail"
+          placeholder="machine learning, inglês, produto...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">duração em minutos (opcional)</label>
+        <input class="form-input mono" type="number" id="estudo-duration"
+          placeholder="45" min="1" max="600">
+      </div>
+      <button class="save-btn" onclick="saveEstudo()">registrar ✓</button>
+    </div>
+
+    <!-- TREINO -->
+    <div class="sheet" id="sheet-treino" style="display:none">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">🏃 Treino</div>
+      <div class="form-group">
+        <label class="form-label">horário</label>
+        <input class="form-input time-centered" type="time" id="treino-time">
+      </div>
+      <div class="form-group">
+        <label class="form-label">atividade</label>
+        <input class="form-input" type="text" id="treino-label"
+          placeholder="corrida, musculação, yoga, natação...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">duração em minutos (opcional)</label>
+        <input class="form-input mono" type="number" id="treino-duration"
+          placeholder="45" min="1" max="600">
+      </div>
+      <div class="form-group">
+        <label class="form-label">intensidade (opcional)</label>
+        <input class="form-input" type="text" id="treino-notes"
+          placeholder="leve, moderada, intensa...">
+      </div>
+      <button class="save-btn" onclick="saveTreino()">registrar ✓</button>
+    </div>
+
+    <!-- FUI DORMIR -->
+    <div class="sheet" id="sheet-dormir" style="display:none">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">🌙 Fui dormir</div>
+      <div class="form-group">
+        <label class="form-label">horário</label>
+        <input class="form-input time-centered" type="time" id="dormir-time">
+      </div>
+      <button class="save-btn" onclick="saveDormir()">registrar ✓</button>
+    </div>
+
+  </div><!-- /sheet wrapper -->
+</div><!-- /overlay -->
+
+
+<script>
+/* ============================================================
+   daylog ✦  — daily tracker (single-file, offline-first)
+   ============================================================ */
+
+// ── CONFIG ──────────────────────────────────────────────────
+// Set APPS_SCRIPT_URL here OR paste it in the settings screen.
+// The settings screen value takes precedence and is persisted.
+const APPS_SCRIPT_URL_DEFAULT = '';
+const REQUEST_TOKEN = 'dl-7x9k2m4p-tz3q8n1v';
+
+// ── STATE (hydrated from localStorage) ──────────────────────
+let APPS_SCRIPT_URL = localStorage.getItem('appsScriptUrl') || APPS_SCRIPT_URL_DEFAULT;
+
+// todayEvents: array of event objects for the current "logical day".
+// Kept in localStorage; older than 2 logical-days ago is pruned on load.
+let todayEvents = safeParseJSON('todayEvents', []);
+
+// offlineQueue: events that haven't been successfully POSTed yet.
+let offlineQueue = safeParseJSON('offlineQueue', []);
+
+// Tracks which calendar date the user last woke up on.
+// event_date for all events follows this date until the next "Acordei".
+let lastWakeDate      = localStorage.getItem('lastWakeDate')      || null;
+let lastWakeTimestamp = localStorage.getItem('lastWakeTimestamp') || null;
+
+let streakData = safeParseJSON('streakData', {
+  current: 0,
+  best: 0,
+  lastActiveDate: null
+});
+
+// ── HELPERS ─────────────────────────────────────────────────
+function safeParseJSON(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+  catch { return fallback; }
+}
+
+function nowTime() {
+  const n = new Date();
+  return pad2(n.getHours()) + ':' + pad2(n.getMinutes());
+}
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function calendarToday() {
+  const n = new Date();
+  return n.getFullYear() + '-' + pad2(n.getMonth()+1) + '-' + pad2(n.getDate());
+}
+
+// "Logical date" = the date the user woke up on.
+// Events after midnight but before the next "Acordei" belong to the previous day.
+function getEventDate() {
+  return lastWakeDate || calendarToday();
+}
+
+// Build a full ISO timestamp from a local HH:MM string.
+// Uses today's calendar date as the date part.
+function buildISO(timeStr) {
+  if (!timeStr) timeStr = nowTime();
+  const [h, m] = timeStr.split(':').map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.toISOString();
+}
+
+function isoToHHMM(iso) {
+  if (!iso) return '';
+  // Extract HH:MM from ISO string, converting to local time
+  const d = new Date(iso);
+  return pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+}
+
+function persistTodayEvents() {
+  localStorage.setItem('todayEvents', JSON.stringify(todayEvents));
+}
+
+function persistQueue() {
+  localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+}
+
+// ── SHEET (bottom sheet) ─────────────────────────────────────
+let currentSheet = null;
+
+function openSheet(type) {
+  currentSheet = type;
+  document.querySelectorAll('.sheet').forEach(s => s.style.display = 'none');
+  const sheet = document.getElementById('sheet-' + type);
+  if (!sheet) return;
+  sheet.style.display = 'block';
+  document.getElementById('overlay').classList.add('active');
+
+  // Pre-fill current time
+  const timeMap = {
+    acordar: 'acordar-time', check:  'check-time',  cafe:   'cafe-time',
+    almoco:  'almoco-time',  jantar: 'jantar-time', estudo: 'estudo-time',
+    treino:  'treino-time',  dormir: 'dormir-time'
+  };
+  const tId = timeMap[type];
+  if (tId) {
+    const inp = document.getElementById(tId);
+    if (inp) inp.value = nowTime();
+  }
+
+  // Reset sliders
+  if (type === 'check') {
+    ['humor', 'fisico'].forEach(id => {
+      document.getElementById(id + '-slider').value = 3;
+      document.getElementById(id + '-val').textContent = '3';
+    });
+  }
+
+  // Clear text fields
+  const clearIds = ['cafe-detail','almoco-detail','jantar-detail',
+                    'estudo-detail','estudo-duration',
+                    'treino-label','treino-duration','treino-notes'];
+  clearIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+function closeSheet() {
+  document.getElementById('overlay').classList.remove('active');
+  document.querySelectorAll('.sheet').forEach(s => s.style.display = 'none');
+  currentSheet = null;
+}
+
+// ── SAVE EVENTS ──────────────────────────────────────────────
+
+function withUserMeta(event) {
+  return { _token: REQUEST_TOKEN, user_pin: SESSION_PIN, user_email: SESSION_EMAIL, ...event };
+}
+
+function commitEvent(event) {
+  const ev = withUserMeta(event);
+  todayEvents.push(ev);
+  persistTodayEvents();
+  closeSheet();
+  showToast('registrado ✓');
+  updateUI();
+  sendToSheets(ev);
+}
+
+function saveAcordar() {
+  const time = document.getElementById('acordar-time').value || nowTime();
+  const ts = buildISO(time);
+  const date = calendarToday();
+
+  // Set logical day anchor
+  lastWakeDate      = date;
+  lastWakeTimestamp = ts;
+  localStorage.setItem('lastWakeDate', date);
+  localStorage.setItem('lastWakeTimestamp', ts);
+
+  updateStreak(date);
+
+  commitEvent({
+    timestamp_iso: ts, event_date: date,
+    type: 'acordar', label: '', detail: '', score: '', duration_min: '', notes: ''
+  });
+}
+
+function saveCheck() {
+  const time = document.getElementById('check-time').value || nowTime();
+  const ts   = buildISO(time);
+  const date = calendarToday();
+  const humor  = parseInt(document.getElementById('humor-slider').value);
+  const fisico = parseInt(document.getElementById('fisico-slider').value);
+
+  // If Acordei wasn't registered yet today, auto-register it
+  if (!lastWakeDate || lastWakeDate !== date) {
+    lastWakeDate      = date;
+    lastWakeTimestamp = ts;
+    localStorage.setItem('lastWakeDate', date);
+    localStorage.setItem('lastWakeTimestamp', ts);
+    updateStreak(date);
+    const acordarEv = withUserMeta({
+      timestamp_iso: ts, event_date: date,
+      type: 'acordar', label: '', detail: '', score: '', duration_min: '', notes: ''
+    });
+    todayEvents.push(acordarEv);
+    sendToSheets(acordarEv);
+  }
+
+  const humorEv  = withUserMeta({ timestamp_iso: ts, event_date: getEventDate(), type: 'humor',  label: '', detail: '', score: humor,  duration_min: '', notes: '' });
+  const fisicoEv = withUserMeta({ timestamp_iso: ts, event_date: getEventDate(), type: 'fisico', label: '', detail: '', score: fisico, duration_min: '', notes: '' });
+
+  todayEvents.push(humorEv, fisicoEv);
+  persistTodayEvents();
+  closeSheet();
+  showToast('bom dia! ✨');
+  updateUI();
+  sendToSheets(humorEv);
+  sendToSheets(fisicoEv);
+}
+
+function saveRefeicao(tipo) {
+  const time   = document.getElementById(tipo + '-time').value || nowTime();
+  const detail = document.getElementById(tipo + '-detail').value.trim();
+  commitEvent({
+    timestamp_iso: buildISO(time), event_date: getEventDate(),
+    type: 'refeicao', label: tipo, detail, score: '', duration_min: '', notes: ''
+  });
+}
+
+function saveEstudo() {
+  const time     = document.getElementById('estudo-time').value || nowTime();
+  const detail   = document.getElementById('estudo-detail').value.trim();
+  const duration = document.getElementById('estudo-duration').value;
+  commitEvent({
+    timestamp_iso: buildISO(time), event_date: getEventDate(),
+    type: 'estudo', label: '', detail, score: '', duration_min: duration || '', notes: ''
+  });
+}
+
+function saveTreino() {
+  const time     = document.getElementById('treino-time').value || nowTime();
+  const label    = document.getElementById('treino-label').value.trim();
+  const duration = document.getElementById('treino-duration').value;
+  const notes    = document.getElementById('treino-notes').value.trim();
+  commitEvent({
+    timestamp_iso: buildISO(time), event_date: getEventDate(),
+    type: 'treino', label, detail: '', score: '', duration_min: duration || '', notes
+  });
+}
+
+function saveDormir() {
+  const time = document.getElementById('dormir-time').value || nowTime();
+  commitEvent({
+    timestamp_iso: buildISO(time), event_date: getEventDate(),
+    type: 'dormir', label: '', detail: '', score: '', duration_min: '', notes: ''
+  });
+}
+
+// ── GOOGLE SHEETS SYNC ───────────────────────────────────────
+
+async function sendToSheets(event) {
+  if (!APPS_SCRIPT_URL) {
+    enqueue(event);
+    return;
+  }
+  try {
+    // Using no-cors because Apps Script Web Apps don't support preflight OPTIONS.
+    // The request will fire; if fetch throws (network error), we enqueue.
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(event)
+    });
+    // no-cors = opaque response; assume success if no exception was thrown.
+  } catch {
+    enqueue(event);
+    updateSyncDot();
+  }
+}
+
+function enqueue(event) {
+  // Deduplicate by (timestamp_iso + type)
+  const key = event.timestamp_iso + '|' + event.type;
+  if (!offlineQueue.some(e => e.timestamp_iso + '|' + e.type === key)) {
+    offlineQueue.push(event);
+    persistQueue();
+  }
+  updateSyncDot();
+}
+
+async function retryQueue() {
+  if (!APPS_SCRIPT_URL || offlineQueue.length === 0) {
+    showToast(offlineQueue.length === 0 ? 'nada pendente ✓' : 'configure a URL primeiro');
+    return;
+  }
+
+  setSyncStatus('pending');
+  const todo   = [...offlineQueue];
+  const failed = [];
+
+  for (const ev of todo) {
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(ev)
+      });
+    } catch {
+      failed.push(ev);
+    }
+  }
+
+  offlineQueue = failed;
+  persistQueue();
+  updateSyncDot();
+
+  showToast(failed.length === 0 ? 'tudo sincronizado ✓' : `${failed.length} evento(s) ainda pendentes`);
+  updateSettingsInfo();
+}
+
+// ── STREAK ───────────────────────────────────────────────────
+
+function updateStreak(eventDate) {
+  if (streakData.lastActiveDate === eventDate) return; // already counted
+
+  const last    = streakData.lastActiveDate;
+  const todayD  = new Date(eventDate);
+
+  if (!last) {
+    streakData.current = 1;
+  } else {
+    const lastD = new Date(last);
+    const diff  = Math.round((todayD - lastD) / 86400000);
+    if (diff === 1) {
+      streakData.current += 1;       // consecutive day
+    } else {
+      streakData.current = 1;        // gap: restart current; best is preserved
+    }
+  }
+
+  streakData.lastActiveDate = eventDate;
+  if (streakData.current > streakData.best) streakData.best = streakData.current;
+  localStorage.setItem('streakData', JSON.stringify(streakData));
+}
+
+// ── UI UPDATE ─────────────────────────────────────────────────
+
+function updateUI() {
+  pruneOldEvents();
+
+  // Date label
+  const n = new Date();
+  const DAYS   = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+  const MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  document.getElementById('dateLabel').textContent =
+    `${DAYS[n.getDay()]}, ${n.getDate()} de ${MONTHS[n.getMonth()]}`;
+
+  // Streak badge
+  document.getElementById('streakBadge').textContent = streakData.current;
+
+  renderSummary();
+  renderButtonStates();
+  renderDayLog();
+  updateSyncDot();
+}
+
+// Remove events that belong to a date older than 2 calendar days ago.
+function pruneOldEvents() {
+  const today = calendarToday();
+  const cutoff = new Date(today);
+  cutoff.setDate(cutoff.getDate() - 2);
+  const cutoffStr = cutoff.toISOString().slice(0,10);
+
+  const before = todayEvents.length;
+  todayEvents = todayEvents.filter(e => (e.event_date || '') >= cutoffStr);
+  if (todayEvents.length !== before) persistTodayEvents();
+}
+
+function eventsForLogicalDay() {
+  const date = getEventDate();
+  return todayEvents.filter(e => e.event_date === date);
+}
+
+function renderSummary() {
+  const events = eventsForLogicalDay();
+  const el = document.getElementById('summaryContent');
+
+  if (events.length === 0) {
+    el.innerHTML = '<div class="summary-empty">nenhum registro ainda — bom dia! ✨</div>';
+    return;
+  }
+
+  const chips = events.map(e => {
+    const icon = eventIcon(e);
+    const label = eventShortLabel(e);
+    const time  = isoToHHMM(e.timestamp_iso);
+    return `<div class="summary-chip">${icon} ${label} <span class="chip-time">${time}</span></div>`;
+  });
+  el.innerHTML = '<div class="summary-items">' + chips.join('') + '</div>';
+}
+
+function renderButtonStates() {
+  // Clear all
+  document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('logged'));
+  document.querySelectorAll('.action-time').forEach(t => t.textContent = '');
+
+  const events = eventsForLogicalDay();
+  for (const ev of events) {
+    const time = isoToHHMM(ev.timestamp_iso);
+    let key = null;
+    if (ev.type === 'acordar')               key = 'acordar';
+    else if (ev.type === 'humor' || ev.type === 'fisico') key = 'check';
+    else if (ev.type === 'refeicao')         key = ev.label; // cafe | almoco | jantar
+    else if (ev.type === 'estudo')           key = 'estudo';
+    else if (ev.type === 'treino')           key = 'treino';
+    else if (ev.type === 'dormir')           key = 'dormir';
+    if (!key) continue;
+
+    const btn  = document.getElementById('btn-'  + key);
+    const tEl  = document.getElementById('time-' + key);
+    if (btn)  btn.classList.add('logged');
+    if (tEl)  tEl.textContent = time;
+  }
+}
+
+function renderDayLog() {
+  const events = [...eventsForLogicalDay()]
+    .sort((a,b) => a.timestamp_iso.localeCompare(b.timestamp_iso));
+  const container = document.getElementById('dayLog');
+
+  if (events.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  container.innerHTML = events.map(e => {
+    const icon  = eventIcon(e);
+    const main  = eventFullLabel(e);
+    const detail = eventDetail(e);
+    const time  = isoToHHMM(e.timestamp_iso);
+    return `<div class="log-item">
+      <span class="log-time">${time}</span>
+      <span class="log-icon">${icon}</span>
+      <div class="log-body">
+        <div class="log-text">${main}</div>
+        ${detail ? `<div class="log-detail">${detail}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── EVENT DISPLAY HELPERS ────────────────────────────────────
+
+function eventIcon(e) {
+  const icons = {
+    acordar: '☀️', humor: '😊', fisico: '💪', dormir: '🌙',
+    estudo: '📚', treino: '🏃',
+    refeicao: { cafe: '☕', almoco: '🥗', jantar: '🍜' }
+  };
+  if (e.type === 'refeicao') return icons.refeicao[e.label] || '🍽️';
+  return icons[e.type] || '📌';
+}
+
+function eventShortLabel(e) {
+  switch (e.type) {
+    case 'acordar': return 'acordou';
+    case 'humor':   return `humor ${e.score}/5`;
+    case 'fisico':  return `físico ${e.score}/5`;
+    case 'dormir':  return 'dormiu';
+    case 'refeicao':return e.label;
+    case 'estudo':  return e.detail ? e.detail.slice(0,18) : 'estudou';
+    case 'treino':  return e.label || 'treinou';
+    default:        return e.type;
+  }
+}
+
+function eventFullLabel(e) {
+  switch (e.type) {
+    case 'acordar': return 'acordou';
+    case 'humor':   return `humor: ${e.score}/5`;
+    case 'fisico':  return `disposição física: ${e.score}/5`;
+    case 'dormir':  return 'foi dormir';
+    case 'refeicao':return e.label;
+    case 'estudo':  return e.detail ? `estudou: ${e.detail}` : 'estudou';
+    case 'treino':  return e.label ? `treino — ${e.label}` : 'treinou';
+    default:        return e.type;
+  }
+}
+
+function eventDetail(e) {
+  const parts = [];
+  if (e.type === 'refeicao' && e.detail) parts.push(e.detail);
+  if (e.duration_min) parts.push(e.duration_min + ' min');
+  if (e.type === 'treino' && e.notes) parts.push(e.notes);
+  return parts.join(' · ');
+}
+
+// ── SYNC DOT ─────────────────────────────────────────────────
+
+function setSyncStatus(status) {
+  const dot = document.getElementById('syncDot');
+  dot.className = 'sync-dot';
+  if (status === 'pending') dot.classList.add('pending');
+  if (status === 'error')   dot.classList.add('error');
+}
+
+function updateSyncDot() {
+  const count = offlineQueue.length;
+  const countEl = document.getElementById('pendingCount');
+  if (count > 0) {
+    setSyncStatus(APPS_SCRIPT_URL ? 'error' : 'pending');
+    countEl.textContent = count > 9 ? '9+' : count;
+    countEl.classList.add('visible');
+  } else {
+    setSyncStatus('ok');
+    countEl.classList.remove('visible');
+  }
+}
+
+// ── SETTINGS ─────────────────────────────────────────────────
+
+function openSettings() {
+  isAdmin(SESSION_PIN, SESSION_EMAIL).then(ok => {
+    if (!ok) return;
+    document.getElementById('settingsScreen').classList.add('active');
+    document.getElementById('appsScriptUrl').value = APPS_SCRIPT_URL;
+    updateSettingsInfo();
+  });
+}
+
+function closeSettings() {
+  document.getElementById('settingsScreen').classList.remove('active');
+}
+
+function saveAppsScriptUrl() {
+  const url = document.getElementById('appsScriptUrl').value.trim();
+  APPS_SCRIPT_URL = url;
+  localStorage.setItem('appsScriptUrl', url);
+  showToast('URL salva ✓');
+  if (url && offlineQueue.length > 0) {
+    setTimeout(retryQueue, 600);
+  }
+}
+
+function updateSettingsInfo() {
+  const qEl = document.getElementById('queueCount');
+  if (qEl) qEl.textContent = offlineQueue.length === 0
+    ? 'tudo sincronizado ✓'
+    : `${offlineQueue.length} evento(s) aguardando`;
+
+  const scEl = document.getElementById('streakCurrent');
+  const sbEl = document.getElementById('streakBest');
+  if (scEl) scEl.textContent = streakData.current + ' dias';
+  if (sbEl) sbEl.textContent = streakData.best + ' dias';
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+
+let _toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ── PIN + EMAIL ───────────────────────────────────────────────
+// Fluxo de cadastro (primeira visita):  criar PIN → confirmar PIN → email
+// Fluxo de acesso (visitas seguintes):  digitar PIN
+//
+// PIN + email = identificador de usuário enviado em cada evento pro Sheets.
+// Analytics futura filtra por user_pin / user_email para isolar dados.
+
+const PIN_KEY   = 'dlPin';
+const EMAIL_KEY = 'dlEmail';
+
+let _pinBuffer  = '';
+let _pinConfirm = '';
+let _pinMode    = 'check'; // 'check' | 'create' | 'confirm' | 'email'
+
+let SESSION_PIN   = '';
+let SESSION_EMAIL = '';
+
+function pinSetup() {
+  const storedPin = localStorage.getItem(PIN_KEY);
+  _pinMode = storedPin ? 'check' : 'create';
+  document.getElementById('pinSubtitle').textContent = storedPin
+    ? 'digite seu PIN'
+    : 'crie um PIN de 4 dígitos';
+  if (storedPin) document.getElementById('pinDesc').style.display = 'none';
+  _pinBuffer = '';
+  renderPinDots();
+}
+
+function pinKey(digit) {
+  if (_pinBuffer.length >= 4) return;
+  _pinBuffer += digit;
+  renderPinDots();
+  if (_pinBuffer.length === 4) setTimeout(pinSubmit, 120);
+}
+
+function pinDel() {
+  _pinBuffer = _pinBuffer.slice(0, -1);
+  renderPinDots();
+  document.getElementById('pinError').textContent = '';
+}
+
+function renderPinDots() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('pd' + i);
+    dot.className = 'pin-dot' + (i < _pinBuffer.length ? ' filled' : '');
+  }
+}
+
+function pinSubmit() {
+  if (_pinMode === 'check') {
+    const stored = localStorage.getItem(PIN_KEY);
+    if (_pinBuffer === stored) {
+      SESSION_PIN   = stored;
+      SESSION_EMAIL = localStorage.getItem(EMAIL_KEY) || '';
+      unlockApp();
+    } else {
+      pinError('PIN incorreto');
+    }
+
+  } else if (_pinMode === 'create') {
+    _pinConfirm = _pinBuffer;
+    _pinBuffer  = '';
+    _pinMode    = 'confirm';
+    document.getElementById('pinSubtitle').textContent = 'confirme seu PIN';
+    document.getElementById('pinHint').textContent = 'repita os 4 dígitos';
+    renderPinDots();
+
+  } else if (_pinMode === 'confirm') {
+    if (_pinBuffer === _pinConfirm) {
+      // PIN confirmado — pede email
+      _pinMode = 'email';
+      document.getElementById('pinPadSection').style.display = 'none';
+      document.getElementById('emailSection').style.display  = 'block';
+      document.getElementById('pinSubtitle').textContent = 'seu e-mail';
+      document.getElementById('pinHint').textContent = 'usado só pra identificar você nos dados';
+      setTimeout(() => document.getElementById('pinEmail').focus(), 100);
+    } else {
+      _pinConfirm = '';
+      _pinMode    = 'create';
+      document.getElementById('pinSubtitle').textContent = 'crie um PIN de 4 dígitos';
+      document.getElementById('pinHint').textContent = '';
+      pinError('PINs diferentes, tente de novo');
+    }
+  }
+}
+
+function submitEmail() {
+  const email = document.getElementById('pinEmail').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('pinError').textContent = 'e-mail inválido';
+    return;
+  }
+  localStorage.setItem(PIN_KEY,   _pinConfirm);
+  localStorage.setItem(EMAIL_KEY, email);
+  SESSION_PIN   = _pinConfirm;
+  SESSION_EMAIL = email;
+  unlockApp();
+}
+
+function pinError(msg) {
+  document.getElementById('pinError').textContent = msg;
+  for (let i = 0; i < 4; i++) document.getElementById('pd' + i).classList.add('error');
+  setTimeout(() => {
+    _pinBuffer = '';
+    renderPinDots();
+    document.getElementById('pinError').textContent = '';
+    for (let i = 0; i < 4; i++) document.getElementById('pd' + i).classList.remove('error');
+  }, 600);
+}
+
+const ADMIN_SALT = '42ce8580bc195a4d3a5e80692a19e0010bdb74fe7c734b723a9a788b648b103d';
+const ADMIN_HASH = '365f96cac980941b0260b82dda52ee47aa06a2dd2e4b14a2ec970eecac0e7ba3';
+
+async function isAdmin(pin, email) {
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(pin + ':' + (email || '').toLowerCase()),
+    { name: 'PBKDF2' }, false, ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt: hexToBytes(ADMIN_SALT), iterations: 200000, hash: 'SHA-256' },
+    keyMaterial, 256
+  );
+  const derived = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2,'0')).join('');
+  return derived === ADMIN_HASH;
+}
+
+function hexToBytes(hex) {
+  const arr = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < arr.length; i++) arr[i] = parseInt(hex.slice(i*2, i*2+2), 16);
+  return arr;
+}
+
+function unlockApp() {
+  document.getElementById('pinScreen').style.display = 'none';
+  isAdmin(SESSION_PIN, SESSION_EMAIL).then(ok => {
+    if (ok) document.getElementById('settingsBtn').style.display = '';
+  });
+  init();
+}
+
+// Suporte a teclado físico na tela de PIN
+document.addEventListener('keydown', e => {
+  const pinVisible = document.getElementById('pinScreen').style.display !== 'none';
+  if (pinVisible) {
+    if (e.key >= '0' && e.key <= '9') pinKey(e.key);
+    if (e.key === 'Backspace') pinDel();
+    return;
+  }
+  if (e.key === 'Escape') closeSheet();
+});
+
+// ── INIT ─────────────────────────────────────────────────────
+
+function init() {
+  updateUI();
+
+  if (offlineQueue.length > 0 && APPS_SCRIPT_URL) {
+    setTimeout(retryQueue, 1200);
+  }
+
+  setInterval(updateUI, 60_000);
+}
+
+// Ponto de entrada: PIN primeiro, app depois
+pinSetup();
+</script>
+</body>
+</html>

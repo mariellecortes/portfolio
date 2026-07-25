@@ -16,14 +16,11 @@
 
   <!-- ── NAV ── -->
   <nav class="nav" id="nav">
-    <a href="#hero" class="nav__name" aria-label="Marielle Côrtes — back to top">
-      <span class="nav__name-full">Marielle Côrtes</span>
-      <span class="nav__name-short" aria-hidden="true">MC</span>
-    </a>
+    <a href="#hero" class="nav__name" aria-label="Marielle Côrtes — back to top">marielle.</a>
     <div class="nav__links">
       <a href="#about" class="nav__hide-sm">about</a>
       <a href="#work">work</a>
-      <a href="#coffee">coffee</a>
+      <a href="#projects">projects</a>
       <a href="#contact">contact</a>
       <a href="assets/resume.pdf" download="Marielle_Cortes_Resume.pdf" class="nav__cta">resume ↓</a>
     </div>
@@ -33,7 +30,7 @@
   <section class="hero" id="hero">
     <div class="hero__inner">
       <div class="hero__label">
-        <span class="mono-label">Tech Lead — Data &amp; AI Engineering</span>
+        <span class="mono-label">Marielle Côrtes · Tech Lead · Data &amp; AI Engineering</span>
       </div>
 
       <h1 class="hero__title">
@@ -266,34 +263,56 @@
     </div>
   </section>
 
-  <!-- ── FEATURED PROJECT ── -->
-  <section class="project section" id="coffee">
+  <!-- ── PROJECTS ── -->
+  <section class="project section" id="projects">
     <div class="container">
       <header class="section-header reveal">
         <span class="section-num">04</span>
-        <h2 class="section-title">Featured project</h2>
+        <h2 class="section-title">Projects</h2>
       </header>
 
-      <a href="pages/coffee.html" class="project-card reveal" style="--delay: 0.1s">
-        <div class="project-card__head">
-          <span class="mono-label">RAG · Vector search · LLM · Open source</span>
-          <span class="project-card__arrow" aria-hidden="true">↗</span>
-        </div>
-        <h3 class="project-card__title">Coffee <em>RAG</em></h3>
-        <p class="project-card__desc">
-          A Retrieval-Augmented Generation system built on top of <em>The World Atlas of Coffee</em>
-          by James Hoffmann. Questions are embedded into vectors, FAISS retrieves the most relevant
-          excerpts, and Llama 3.3 70B generates grounded answers — live, ask it anything.
-        </p>
-        <div class="tags">
-          <span class="tag">Python</span>
-          <span class="tag">FastAPI</span>
-          <span class="tag">FAISS</span>
-          <span class="tag">all-MiniLM-L6-v2</span>
-          <span class="tag">Llama 3.3 70B</span>
-          <span class="tag">Groq API</span>
-        </div>
-      </a>
+      <div class="projects__grid">
+        <a href="pages/coffee.html" class="project-card reveal" style="--delay: 0.05s">
+          <div class="project-card__head">
+            <span class="mono-label">RAG · Vector search · LLM · Open source</span>
+            <span class="project-card__arrow" aria-hidden="true">↗</span>
+          </div>
+          <h3 class="project-card__title">Coffee <em>RAG</em></h3>
+          <p class="project-card__desc">
+            A Retrieval-Augmented Generation system built on top of <em>The World Atlas of Coffee</em>
+            by James Hoffmann. Questions are embedded into vectors, FAISS retrieves the most relevant
+            excerpts, and Llama 3.3 70B generates grounded answers — live, ask it anything.
+          </p>
+          <div class="tags">
+            <span class="tag">Python</span>
+            <span class="tag">FastAPI</span>
+            <span class="tag">FAISS</span>
+            <span class="tag">all-MiniLM-L6-v2</span>
+            <span class="tag">Llama 3.3 70B</span>
+            <span class="tag">Groq API</span>
+          </div>
+        </a>
+
+        <a href="pages/daylog" class="project-card reveal" style="--delay: 0.15s">
+          <div class="project-card__head">
+            <span class="mono-label">Personal tool · Offline-first · Google Sheets</span>
+            <span class="project-card__arrow" aria-hidden="true">↗</span>
+          </div>
+          <h3 class="project-card__title">day<em>log</em> ✦</h3>
+          <p class="project-card__desc">
+            A friction-free daily tracker built for logging throughout the day — not at the end of it.
+            Quick-action buttons, offline queue, and multi-user with PIN-based identity, no auth server required.
+            <em>Google Sheets</em> as the MVP backend — next iteration: a real database.
+          </p>
+          <div class="tags">
+            <span class="tag">Vanilla JS</span>
+            <span class="tag">Single-file</span>
+            <span class="tag">Google Apps Script</span>
+            <span class="tag">localStorage</span>
+            <span class="tag">Offline-first</span>
+          </div>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -342,6 +361,9 @@
   <footer class="footer">
     <span>© 2026 Marielle Côrtes</span>
     <span>Built with a lot of coffee ☕</span>
+    <a href="pages/daylog" aria-hidden="true" tabindex="-1"
+       style="color:inherit;text-decoration:none;opacity:0;transition:opacity .3s;font-size:10px;"
+       onmouseenter="this.style.opacity='.25'" onmouseleave="this.style.opacity='0'">✦</a>
   </footer>
 
   <script src="scripts/main.js"></script>
