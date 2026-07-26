@@ -857,11 +857,6 @@
   <!-- Quick actions -->
   <div class="section-title">registrar</div>
   <div class="actions-grid">
-    <button class="action-btn btn-pink"   id="btn-acordar" onclick="openSheet('acordar')">
-      <span class="action-icon">☀️</span>
-      <span class="action-label">Acordei</span>
-      <span class="action-time" id="time-acordar"></span>
-    </button>
     <button class="action-btn btn-purple" id="btn-check"   onclick="openSheet('check')">
       <span class="action-icon">✨</span>
       <span class="action-label">Check da manhã</span>
@@ -914,16 +909,6 @@
   <div style="width:100%;max-width:480px;" onclick="event.stopPropagation()">
 
     <!-- ACORDEI -->
-    <div class="sheet" id="sheet-acordar" style="display:none">
-      <div class="sheet-handle"></div>
-      <div class="sheet-title">☀️ Acordei</div>
-      <div class="form-group">
-        <label class="form-label">horário</label>
-        <input class="form-input time-centered" type="time" id="acordar-time">
-      </div>
-      <button class="save-btn" onclick="saveAcordar()">registrar ✓</button>
-    </div>
-
     <!-- CHECK DA MANHÃ -->
     <div class="sheet" id="sheet-check" style="display:none">
       <div class="sheet-handle"></div>
@@ -1092,25 +1077,16 @@ const REQUEST_TOKEN = 'dl-7x9k2m4p-tz3q8n1v';
 // ── STATE (hydrated from localStorage) ──────────────────────
 let APPS_SCRIPT_URL = localStorage.getItem('appsScriptUrl') || APPS_SCRIPT_URL_DEFAULT;
 
-// todayEvents: array of event objects for the current "logical day".
-// Kept in localStorage; older than 2 logical-days ago is pruned on load.
-let todayEvents = safeParseJSON('todayEvents', []);
-
-// offlineQueue: events that haven't been successfully POSTed yet.
-let offlineQueue = safeParseJSON('offlineQueue', []);
-
-// Tracks which calendar date the user last woke up on.
-// event_date for all events follows this date until the next "Acordei".
-let lastWakeDate      = localStorage.getItem('lastWakeDate')      || null;
-let lastWakeTimestamp = localStorage.getItem('lastWakeTimestamp') || null;
-
-let streakData = safeParseJSON('streakData', {
-  current: 0,
-  best: 0,
-  lastActiveDate: null
-});
+// Per-user state — initialized in unlockApp() once SESSION_PIN is known
+let todayEvents       = [];
+let offlineQueue      = [];
+let lastWakeDate      = null;
+let lastWakeTimestamp = null;
+let streakData        = { current: 0, best: 0, lastActiveDate: null };
 
 // ── HELPERS ─────────────────────────────────────────────────
+function userKey(k) { return 'dl_' + SESSION_PIN + '_' + k; }
+
 function safeParseJSON(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key)) || fallback; }
   catch { return fallback; }
@@ -1152,11 +1128,11 @@ function isoToHHMM(iso) {
 }
 
 function persistTodayEvents() {
-  localStorage.setItem('todayEvents', JSON.stringify(todayEvents));
+  localStorage.setItem(userKey('todayEvents'), JSON.stringify(todayEvents));
 }
 
 function persistQueue() {
-  localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
+  localStorage.setItem(userKey('offlineQueue'), JSON.stringify(offlineQueue));
 }
 
 // ── SHEET (bottom sheet) ─────────────────────────────────────
@@ -1172,7 +1148,7 @@ function openSheet(type) {
 
   // Pre-fill current time
   const timeMap = {
-    acordar: 'acordar-time', check:  'check-time',  cafe:   'cafe-time',
+    check:  'check-time',  cafe:   'cafe-time',
     almoco:  'almoco-time',  jantar: 'jantar-time', estudo: 'estudo-time',
     treino:  'treino-time',  dormir: 'dormir-time'
   };
@@ -1222,25 +1198,6 @@ function commitEvent(event) {
   sendToSheets(ev);
 }
 
-function saveAcordar() {
-  const time = document.getElementById('acordar-time').value || nowTime();
-  const ts = buildISO(time);
-  const date = calendarToday();
-
-  // Set logical day anchor
-  lastWakeDate      = date;
-  lastWakeTimestamp = ts;
-  localStorage.setItem('lastWakeDate', date);
-  localStorage.setItem('lastWakeTimestamp', ts);
-
-  updateStreak(date);
-
-  commitEvent({
-    timestamp_iso: ts, event_date: date,
-    type: 'acordar', label: '', detail: '', score: '', duration_min: '', notes: ''
-  });
-}
-
 function saveCheck() {
   const time = document.getElementById('check-time').value || nowTime();
   const ts   = buildISO(time);
@@ -1248,19 +1205,13 @@ function saveCheck() {
   const humor  = parseInt(document.getElementById('humor-slider').value);
   const fisico = parseInt(document.getElementById('fisico-slider').value);
 
-  // If Acordei wasn't registered yet today, auto-register it
+  // Set logical day anchor on first check of the day
   if (!lastWakeDate || lastWakeDate !== date) {
     lastWakeDate      = date;
     lastWakeTimestamp = ts;
-    localStorage.setItem('lastWakeDate', date);
-    localStorage.setItem('lastWakeTimestamp', ts);
+    localStorage.setItem(userKey('lastWakeDate'), date);
+    localStorage.setItem(userKey('lastWakeTimestamp'), ts);
     updateStreak(date);
-    const acordarEv = withUserMeta({
-      timestamp_iso: ts, event_date: date,
-      type: 'acordar', label: '', detail: '', score: '', duration_min: '', notes: ''
-    });
-    todayEvents.push(acordarEv);
-    sendToSheets(acordarEv);
   }
 
   const humorEv  = withUserMeta({ timestamp_iso: ts, event_date: getEventDate(), type: 'humor',  label: '', detail: '', score: humor,  duration_min: '', notes: '' });
@@ -1399,7 +1350,7 @@ function updateStreak(eventDate) {
 
   streakData.lastActiveDate = eventDate;
   if (streakData.current > streakData.best) streakData.best = streakData.current;
-  localStorage.setItem('streakData', JSON.stringify(streakData));
+  localStorage.setItem(userKey('streakData'), JSON.stringify(streakData));
 }
 
 // ── UI UPDATE ─────────────────────────────────────────────────
@@ -1467,8 +1418,7 @@ function renderButtonStates() {
   for (const ev of events) {
     const time = isoToHHMM(ev.timestamp_iso);
     let key = null;
-    if (ev.type === 'acordar')               key = 'acordar';
-    else if (ev.type === 'humor' || ev.type === 'fisico') key = 'check';
+    if (ev.type === 'humor' || ev.type === 'fisico') key = 'check';
     else if (ev.type === 'refeicao')         key = ev.label; // cafe | almoco | jantar
     else if (ev.type === 'estudo')           key = 'estudo';
     else if (ev.type === 'treino')           key = 'treino';
@@ -1759,6 +1709,14 @@ function hexToBytes(hex) {
 
 function unlockApp() {
   document.getElementById('pinScreen').style.display = 'none';
+
+  // Hydrate per-user state now that SESSION_PIN is known
+  todayEvents       = safeParseJSON(userKey('todayEvents'), []);
+  offlineQueue      = safeParseJSON(userKey('offlineQueue'), []);
+  lastWakeDate      = localStorage.getItem(userKey('lastWakeDate'))      || null;
+  lastWakeTimestamp = localStorage.getItem(userKey('lastWakeTimestamp')) || null;
+  streakData        = safeParseJSON(userKey('streakData'), { current: 0, best: 0, lastActiveDate: null });
+
   isAdmin(SESSION_PIN, SESSION_EMAIL).then(ok => {
     if (ok) document.getElementById('settingsBtn').style.display = '';
   });
